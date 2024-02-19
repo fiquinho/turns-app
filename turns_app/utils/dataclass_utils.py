@@ -24,7 +24,9 @@ class BaseDataclass:
         return cls(**constructor_args)
 
     def __post_init__(self):
-        """Ensure that the dataclass has been constructed with the correct types."""
+        """Ensure that the dataclass has been constructed with the correct types.
+        Raises a TypeError if at least one type is incorrect."""
+
         hints = get_type_hints(self)
         for attr, attr_type in hints.items():
             value = getattr(self, attr)
