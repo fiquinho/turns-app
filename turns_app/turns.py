@@ -1,5 +1,7 @@
+from copy import deepcopy
 from datetime import datetime
 from dataclasses import dataclass
+from typing import Any
 
 from turns_app.utils.dataclass_utils import BaseDataclass
 
@@ -20,3 +22,10 @@ class Turn(BaseDataclass):
 
     user_id: str          # User unique identifier
     office_id: str        # Office unique identifier
+
+
+def turn_from_dict(values: dict[str, Any]) -> Turn:
+    init_dict = deepcopy(values)
+    init_dict["start_time"] = datetime.strptime(values["start_date"], "%d.%m.%Y_%H.%M")
+    init_dict["end_time"] = datetime.strptime(values["end_date"], "%d.%m.%Y_%H.%M")
+    return Turn.from_dict(init_dict)
