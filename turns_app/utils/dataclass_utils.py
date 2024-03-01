@@ -1,6 +1,6 @@
 import inspect
 from dataclasses import dataclass
-from typing import Any, get_type_hints
+from typing import Any, get_type_hints, TypeVar
 
 
 @dataclass
@@ -32,3 +32,6 @@ class BaseDataclass:
             value = getattr(self, attr)
             if not isinstance(value, attr_type):
                 raise TypeError(f"Attribute '{attr}' must be of type '{attr_type}', got '{type(value)}'")
+
+
+BaseDataclassInstance = TypeVar('BaseDataclassInstance', bound=BaseDataclass)
