@@ -4,7 +4,7 @@ from datetime import datetime
 
 import pytest
 
-from turns_app.defaults import TEST_DATA_DB
+from tests.defaults import TEST_DATA_DB
 from turns_app.turns import turn_id_generator, Turn, turn_from_dict
 
 

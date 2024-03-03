@@ -1,7 +1,6 @@
 from dataclasses import dataclass
-from functools import partial
 
-from turns_app.defaults import TESTS_PATH
+from tests.defaults import TESTS_PATH
 from turns_app.utils.dataclass_utils import BaseDataclass
 from turns_app.utils.dotenv_utils import config_from_env
 

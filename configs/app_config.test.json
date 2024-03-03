@@ -1,0 +1,7 @@
+{
+  "mongo_config": {
+    "server": "localhost",
+    "port": 27017,
+    "db": "turns_app-test"
+  }
+}

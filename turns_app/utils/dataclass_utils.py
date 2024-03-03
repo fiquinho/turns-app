@@ -33,5 +33,13 @@ class BaseDataclass:
             if not isinstance(value, attr_type):
                 raise TypeError(f"Attribute '{attr}' must be of type '{attr_type}', got '{type(value)}'")
 
+    def to_dict(self) -> dict[str, Any]:
+        """
+        Convert the dataclass to a dictionary.
+
+        :return: A dictionary representation of the dataclass
+        """
+        return {key: value for key, value in self.__dict__.items() if not key.startswith('_')}
+
 
 BaseDataclassInstance = TypeVar('BaseDataclassInstance', bound=BaseDataclass)
