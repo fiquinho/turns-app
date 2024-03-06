@@ -24,8 +24,13 @@ def singleton(cls):
     def check_instance() -> bool:
         return cls in instances
 
+    def delete_instance() -> None:
+        if cls in instances:
+            del instances[cls]
+
     create_instance.check_instance = check_instance
     create_instance.get_instance = get_instance
+    create_instance.delete_instance = delete_instance
 
     return create_instance
 

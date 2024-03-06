@@ -4,11 +4,21 @@ from datetime import datetime
 
 import pytest
 
+from turns_app.turns import turn_id_generator, Turn, turn_from_source_dict, MongoTurnsManager, get_week_by_day, \
+    TimeRange
+from turns_app.utils.config_utils import AppConfig, load_app_config_from_json
+
+from tests.data_test_db.test_db_init import TEST_CONFIG_FILE
 from tests.defaults import TEST_DATA_DB
-from turns_app.turns import turn_id_generator, Turn, turn_from_dict
 
 
 TURNS_DATA_FILE = TEST_DATA_DB / 'turns.json'
+
+
+@pytest.fixture
+def app_config() -> AppConfig:
+    AppConfig.delete_instance()  # type: ignore
+    return load_app_config_from_json(TEST_CONFIG_FILE)
 
 
 @pytest.fixture
@@ -24,14 +34,14 @@ def turn_dict() -> dict[str, Any]:
 
 @pytest.fixture
 def turn(turn_dict) -> Turn:
-    return turn_from_dict(turn_dict)
+    return turn_from_source_dict(turn_dict)
 
 
 @pytest.fixture
 def turns_list() -> list[Turn]:
     with open(TURNS_DATA_FILE, 'r') as file:
         turns = json.load(file)
-    return [turn_from_dict(_turn) for _turn in turns]
+    return [turn_from_source_dict(_turn) for _turn in turns]
 
 
 def test_turn_id_generator():
@@ -56,10 +66,52 @@ def test_turn_generation():
     assert turn.office_id == 'OFF_01'
 
 
-def test_turn_from_dict(turn_dict):
-    turn = turn_from_dict(turn_dict)
+def test_turn_from_source_dict(turn_dict):
+    turn = turn_from_source_dict(turn_dict)
     assert turn.idx == 'TURN-26.02.2024-08.00-OFF_01'
     assert turn.start_time == datetime(2024, 2, 26, 8, 0)
     assert turn.end_time == datetime(2024, 2, 26, 10, 0)
     assert turn.user_id == 'USER_01'
     assert turn.office_id == 'OFF_01'
+
+
+def test_turns_manager(app_config, turn):
+    manger = MongoTurnsManager(app_config.mongo)
+
+    result = manger.get_turn_by_id(turn.idx)
+    assert result == turn
+
+
+def test_turns_manager_range(app_config, turns_list):
+    manger = MongoTurnsManager(app_config.mongo)
+
+    start_time = datetime(2024, 2, 26, 8, 0)
+    end_time = datetime(2024, 2, 27, 14, 0)
+    time_range = TimeRange(start_time, end_time)
+
+    result = manger.get_turns_in_range(time_range)
+    assert result == turns_list
+
+    start_time = datetime(2024, 2, 26, 9, 0)
+    end_time = datetime(2024, 2, 27, 13, 30)
+    time_range = TimeRange(start_time, end_time)
+
+    result = manger.get_turns_in_range(time_range)
+    assert result == turns_list
+
+    start_time = datetime(2024, 2, 26, 9, 0)
+    end_time = datetime(2024, 2, 26, 9, 30)
+    time_range = TimeRange(start_time, end_time)
+
+    result = manger.get_turns_in_range(time_range)
+    assert result == [result[0]]
+
+
+def test_get_week_by_day():
+    week_start = datetime(2024, 2, 26)
+    week_end = datetime(2024, 3, 4)
+
+    day = datetime(2024, 2, 27)
+    result = get_week_by_day(day)
+    assert result.start_time == week_start
+    assert result.end_time == week_end

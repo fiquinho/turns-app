@@ -4,7 +4,7 @@ from pymongo import MongoClient
 
 from tests.defaults import TEST_DATA_DB
 from turns_app.defaults import CONFIGS_PATH
-from turns_app.turns import turn_from_dict
+from turns_app.turns import turn_from_source_dict
 from turns_app.utils.config_utils import load_app_config_from_json
 
 TEST_CONFIG_FILE = CONFIGS_PATH / "app_config.test.json"
@@ -27,7 +27,7 @@ def main():
     with open(TEST_DATA_FILE, "r") as f:
         data = json.load(f)
 
-    turns = [turn_from_dict(turn) for turn in data]
+    turns = [turn_from_source_dict(turn) for turn in data]
 
     db.turns.insert_many([turn.to_dict() for turn in turns])
 

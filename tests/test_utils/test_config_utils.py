@@ -50,6 +50,7 @@ def test_singleton():
 
 
 def test_app_config():
+    AppConfig.delete_instance()  # type: ignore
     assert AppConfig.check_instance() is False  # type: ignore
 
     app_config = load_app_config_from_json(TEST_CONFIG_PATH)
