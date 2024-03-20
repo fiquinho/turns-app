@@ -9,13 +9,21 @@ from turns_app.utils.config_utils import MongoConfig
 from turns_app.utils.dataclass_utils import BaseDataclass
 
 
+DATE_FORMAT = "%d.%m.%Y"
+TIME_FORMAT = "%H.%M"
+DATETIME_FORMAT = f"{DATE_FORMAT}_{TIME_FORMAT}"
+
+
+Day = str  # Format: "DD.MM.YYYY"
+
+
 @dataclass
 class TimeRange:
     start_time: datetime
     end_time: datetime
 
 
-def turn_id_generator(start_time: datetime, office_id: str):
+def turn_id_generator(start_time: datetime, office_id: str) -> str:
     """Generate unique IDs for turns"""
     date = start_time.date().strftime("%d.%m.%Y")
     time = start_time.time().strftime("%H.%M")
@@ -31,6 +39,15 @@ class Turn(BaseDataclass):
 
     user_id: str          # User unique identifier
     office_id: str        # Office unique identifier
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "idx": self.idx,
+            "start_time": self.start_time.strftime(DATETIME_FORMAT),
+            "end_time": self.end_time.strftime(DATETIME_FORMAT),
+            "user_id": self.user_id,
+            "office_id": self.office_id
+        }
 
 
 def turn_from_source_dict(values: dict[str, Any]) -> Turn:
@@ -82,3 +99,19 @@ def get_week_by_day(day: datetime) -> TimeRange:
     start_of_week = day - timedelta(days=day.weekday())
     end_of_week = start_of_week + timedelta(days=7)
     return TimeRange(start_of_week, end_of_week)
+
+
+WeekTurns = dict[Day, list[Turn]]
+
+
+def order_by_day(turns: list[Turn]) -> WeekTurns:
+    """Order the turns by day"""
+    ordered_turns = {}
+    for turn in turns:
+        day = turn.start_time.date().strftime(DATE_FORMAT)
+        if day not in ordered_turns:
+            ordered_turns[day] = []
+
+        ordered_turns[day].append(turn)
+
+    return ordered_turns
