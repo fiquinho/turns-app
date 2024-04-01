@@ -1,7 +1,7 @@
 from copy import deepcopy
 from datetime import datetime, timedelta
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, TypedDict
 
 from pymongo import MongoClient
 
@@ -101,17 +101,35 @@ def get_week_by_day(day: datetime) -> TimeRange:
     return TimeRange(start_of_week, end_of_week)
 
 
-WeekTurns = dict[Day, list[Turn]]
+class DayTurns(TypedDict):
+    turns: list[Turn]
+    date: Day
 
 
-def order_by_day(turns: list[Turn]) -> WeekTurns:
-    """Order the turns by day"""
-    ordered_turns = {}
+class WeekTurns(TypedDict):
+    monday: DayTurns
+    tuesday: DayTurns
+    wednesday: DayTurns
+    thursday: DayTurns
+    friday: DayTurns
+    saturday: DayTurns
+    sunday: DayTurns
+
+
+def make_week_dict(turns: list[Turn]) -> WeekTurns:
+    week_days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+
+    week_dict = {day: {"turns": [], "date": ""} for day in week_days}
     for turn in turns:
-        day = turn.start_time.date().strftime(DATE_FORMAT)
-        if day not in ordered_turns:
-            ordered_turns[day] = []
 
-        ordered_turns[day].append(turn)
+        day = turn.start_time.strftime("%A").lower()
+        date = turn.start_time.strftime(DATE_FORMAT)
 
-    return ordered_turns
+        if week_dict[day]["date"] and week_dict[day]["date"] != date:
+            raise ValueError(f"There are turns from two different weeks in the list. "
+                             f"Turns must be from the same week.")
+
+        week_dict[day]["turns"].append(turn)
+        week_dict[day]["date"] = turn.start_time.strftime(DATE_FORMAT)
+
+    return week_dict

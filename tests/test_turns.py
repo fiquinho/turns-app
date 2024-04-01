@@ -5,7 +5,7 @@ from datetime import datetime
 import pytest
 
 from turns_app.turns import turn_id_generator, Turn, turn_from_source_dict, MongoTurnsManager, get_week_by_day, \
-    TimeRange, order_by_day
+    TimeRange, make_week_dict
 from turns_app.utils.config_utils import AppConfig, load_app_config_from_json
 
 from tests.data_test_db.test_db_init import TEST_CONFIG_FILE
@@ -117,6 +117,20 @@ def test_get_week_by_day():
     assert result.end_time == week_end
 
 
-def test_order_by_day(turns_list):
-    result = order_by_day(turns_list)
-    assert len(result) == 2
+def test_make_week_dict(turns_list):
+    result = make_week_dict(turns_list)
+    assert len(result) == 7
+    assert 'monday' in result
+    assert 'tuesday' in result
+    assert 'wednesday' in result
+    assert 'thursday' in result
+    assert 'friday' in result
+    assert 'saturday' in result
+    assert 'sunday' in result
+    assert 'turns' in result['monday']
+    assert 'date' in result['monday']
+    assert len(result['monday']['turns']) == 3
+    assert result['monday']['date'] == '26.02.2024'
+    assert len(result['tuesday']['turns']) == 2
+
+    assert isinstance(result['tuesday']['turns'][0], Turn)

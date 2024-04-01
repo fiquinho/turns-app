@@ -3,7 +3,7 @@ import datetime
 from flask import Blueprint, request, current_app
 from flask_restx import Resource, fields, Api
 
-from turns_app.turns import get_week_by_day, DATE_FORMAT, order_by_day
+from turns_app.turns import get_week_by_day, DATE_FORMAT, make_week_dict
 from turns_app.utils.flask_utils import ApiState
 
 
@@ -19,12 +19,21 @@ turns_api_extension = Api(
 day_model = turns_api_extension.model('Day', {
     "day": fields.String(required=True, description="Day as string. Format: 'DD.MM.YYYY'")
 })
-week_turns_model = turns_api_extension.model('WeekTurns', {
-    "start_day": fields.String(required=True, description="Start day of the week as string. Format: 'DD.MM.YYYY'"),
-    "end_day": fields.String(required=True, description="End day of the week as string. Format: 'DD.MM.YYYY'"),
-    # Dictionary of turns by day
-    "turns": fields.Raw(required=True, description="Dictionary of turns by day")
+turns_list_model = turns_api_extension.model('TurnsList', {
+    "turns": fields.List(fields.Raw, required=True, description="List of turns"),
+    "date": fields.String(required=True, description="Date as string. Format: 'DD.MM.YYYY'")
 })
+
+week_turns_model = turns_api_extension.model('WeekTurns', {
+    # Dict with day name as key and turns_list_model as value
+    "monday": fields.Nested(turns_list_model, required=True, description="Monday turns"),
+    "tuesday": fields.Nested(turns_list_model, required=True, description="Tuesday turns"),
+    "wednesday": fields.Nested(turns_list_model, required=True, description="Wednesday turns"),
+    "thursday": fields.Nested(turns_list_model, required=True, description="Thursday turns"),
+    "friday": fields.Nested(turns_list_model, required=True, description="Friday turns"),
+    "saturday": fields.Nested(turns_list_model, required=True, description="Saturday turns"),
+    "sunday": fields.Nested(turns_list_model, required=True, description="Sunday turns")
+    })
 
 
 @turns_api_extension.route('/get_week', methods=['GET'])
@@ -41,10 +50,7 @@ class GetWeek(Resource):
         formatted_day = datetime.datetime.strptime(day_str, DATE_FORMAT)
 
         week = get_week_by_day(formatted_day)
-        end_day = week.end_time - datetime.timedelta(days=1)
         turns = db_manager.get_turns_in_range(week)
-        week_turns = order_by_day(turns)
+        week_turns = make_week_dict(turns)
 
-        return {'start_day': week.start_time.strftime(DATE_FORMAT),
-                'end_day': end_day.strftime(DATE_FORMAT),
-                'turns': week_turns}
+        return week_turns
