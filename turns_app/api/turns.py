@@ -45,8 +45,10 @@ class GetWeek(Resource):
         api_state: ApiState = current_app.config["api_config"]
         db_manager = api_state.db_manager
 
-        request_data = request.get_json()
-        day_str: str = request_data.get('day')
+        # get request dict
+        params = dict(request.args)
+
+        day_str: str = params.get('day')
         formatted_day = datetime.datetime.strptime(day_str, DATE_FORMAT)
 
         week = get_week_by_day(formatted_day)
