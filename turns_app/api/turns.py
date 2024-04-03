@@ -3,7 +3,7 @@ import datetime
 from flask import Blueprint, request, current_app
 from flask_restx import Resource, fields, Api
 
-from turns_app.turns import get_week_by_day, DATE_FORMAT, make_week_dict
+from turns_app.turns import DATE_FORMAT, get_week_turns
 from turns_app.utils.flask_utils import ApiState
 
 
@@ -19,11 +19,18 @@ turns_api_extension = Api(
 day_model = turns_api_extension.model('Day', {
     "day": fields.String(required=True, description="Day as string. Format: 'DD.MM.YYYY'")
 })
+
+turn_model = turns_api_extension.model('Turn', {
+    "idx": fields.String(required=True, description="Turn unique identifier"),
+    "start_time": fields.String(required=True, description="Turn start time"),
+    "end_time": fields.String(required=True, description="Turn end time"),
+    "user_id": fields.String(required=True, description="User unique identifier"),
+    "office_id": fields.String(required=True, description="Office unique identifier")
+})
 turns_list_model = turns_api_extension.model('TurnsList', {
-    "turns": fields.List(fields.Raw, required=True, description="List of turns"),
+    "turns": fields.List(fields.Nested(turn_model), required=True, description="List of turns"),
     "date": fields.String(required=True, description="Date as string. Format: 'DD.MM.YYYY'")
 })
-
 week_turns_model = turns_api_extension.model('WeekTurns', {
     # Dict with day name as key and turns_list_model as value
     "monday": fields.Nested(turns_list_model, required=True, description="Monday turns"),
@@ -51,8 +58,6 @@ class GetWeek(Resource):
         day_str: str = params.get('day')
         formatted_day = datetime.datetime.strptime(day_str, DATE_FORMAT)
 
-        week = get_week_by_day(formatted_day)
-        turns = db_manager.get_turns_in_range(week)
-        week_turns = make_week_dict(turns)
+        week_turns = get_week_turns(formatted_day, db_manager)
 
         return week_turns

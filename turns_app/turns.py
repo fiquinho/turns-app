@@ -25,8 +25,8 @@ class TimeRange:
 
 def turn_id_generator(start_time: datetime, office_id: str) -> str:
     """Generate unique IDs for turns"""
-    date = start_time.date().strftime("%d.%m.%Y")
-    time = start_time.time().strftime("%H.%M")
+    date = start_time.date().strftime(DATE_FORMAT)
+    time = start_time.time().strftime(TIME_FORMAT)
     return f"TURN-{date}-{time}-{office_id}"
 
 
@@ -52,8 +52,8 @@ class Turn(BaseDataclass):
 
 def turn_from_source_dict(values: dict[str, Any]) -> Turn:
     init_dict = deepcopy(values)
-    init_dict["start_time"] = datetime.strptime(values["start_date"], "%d.%m.%Y_%H.%M")
-    init_dict["end_time"] = datetime.strptime(values["end_date"], "%d.%m.%Y_%H.%M")
+    init_dict["start_time"] = datetime.strptime(values["start_date"], DATETIME_FORMAT)
+    init_dict["end_time"] = datetime.strptime(values["end_date"], DATETIME_FORMAT)
     return Turn.from_dict(init_dict)
 
 
@@ -95,10 +95,20 @@ class MongoTurnsManager:
 
 
 def get_week_by_day(day: datetime) -> TimeRange:
-    """Get the week of the day given, starting from Monday"""
+    """Get the week of the given day, starting from Monday"""
     start_of_week = day - timedelta(days=day.weekday())
     end_of_week = start_of_week + timedelta(days=7)
     return TimeRange(start_of_week, end_of_week)
+
+
+def days_in_range(time_range: TimeRange) -> list[Day]:
+    """Get all the days in the given time range"""
+    days = []
+    current_day = time_range.start_time
+    while current_day < time_range.end_time:
+        days.append(current_day.strftime(DATE_FORMAT))
+        current_day += timedelta(days=1)
+    return days
 
 
 class DayTurns(TypedDict):
@@ -116,20 +126,26 @@ class WeekTurns(TypedDict):
     sunday: DayTurns
 
 
-def make_week_dict(turns: list[Turn]) -> WeekTurns:
-    week_days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+def make_week_dict(turns: list[Turn], week_days: list[Day]) -> WeekTurns:
+    week_days_names = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
 
-    week_dict = {day: {"turns": [], "date": ""} for day in week_days}
+    week_dict = {day: {"turns": [], "date": date} for day, date in zip(week_days_names, week_days)}
     for turn in turns:
 
         day = turn.start_time.strftime("%A").lower()
         date = turn.start_time.strftime(DATE_FORMAT)
 
-        if week_dict[day]["date"] and week_dict[day]["date"] != date:
+        if week_dict[day]["date"] != date:
             raise ValueError(f"There are turns from two different weeks in the list. "
                              f"Turns must be from the same week.")
 
         week_dict[day]["turns"].append(turn)
-        week_dict[day]["date"] = turn.start_time.strftime(DATE_FORMAT)
 
     return week_dict
+
+
+def get_week_turns(day: datetime, db_manager: MongoTurnsManager) -> WeekTurns:
+    week = get_week_by_day(day)
+    week_days = days_in_range(week)
+    turns = db_manager.get_turns_in_range(week)
+    return make_week_dict(turns, week_days)

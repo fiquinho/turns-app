@@ -5,7 +5,7 @@ from datetime import datetime
 import pytest
 
 from turns_app.turns import turn_id_generator, Turn, turn_from_source_dict, MongoTurnsManager, get_week_by_day, \
-    TimeRange, make_week_dict
+    TimeRange, make_week_dict, days_in_range
 from turns_app.utils.config_utils import AppConfig, load_app_config_from_json
 
 from tests.data_test_db.test_db_init import TEST_CONFIG_FILE
@@ -117,8 +117,21 @@ def test_get_week_by_day():
     assert result.end_time == week_end
 
 
+def test_days_in_range():
+    day = datetime(2024, 2, 27)
+    week_range = get_week_by_day(day)
+    result = days_in_range(week_range)
+
+    assert len(result) == 7
+    assert result[0] == "26.02.2024"
+    assert result[1] == "27.02.2024"
+    assert result[-1] == "03.03.2024"
+
+
 def test_make_week_dict(turns_list):
-    result = make_week_dict(turns_list)
+    week_days = days_in_range(get_week_by_day(turns_list[0].start_time))
+
+    result = make_week_dict(turns_list, week_days)
     assert len(result) == 7
     assert 'monday' in result
     assert 'tuesday' in result
