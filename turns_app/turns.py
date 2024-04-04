@@ -40,7 +40,7 @@ class Turn(BaseDataclass):
     user_id: str          # User unique identifier
     office_id: str        # Office unique identifier
 
-    def to_dict(self) -> dict[str, Any]:
+    def to_str_dict(self) -> dict[str, Any]:
         return {
             "idx": self.idx,
             "start_time": self.start_time.strftime(DATETIME_FORMAT),
@@ -52,9 +52,24 @@ class Turn(BaseDataclass):
 
 def turn_from_source_dict(values: dict[str, Any]) -> Turn:
     init_dict = deepcopy(values)
-    init_dict["start_time"] = datetime.strptime(values["start_date"], DATETIME_FORMAT)
-    init_dict["end_time"] = datetime.strptime(values["end_date"], DATETIME_FORMAT)
+    init_dict["start_time"] = datetime.strptime(values["start_date"], "%d.%m.%Y_%H.%M")
+    init_dict["end_time"] = datetime.strptime(values["end_date"], "%d.%m.%Y_%H.%M")
     return Turn.from_dict(init_dict)
+
+
+class DayTurns(TypedDict):
+    turns: list[Turn]
+    date: Day
+
+
+class WeekTurns(TypedDict):
+    monday: DayTurns
+    tuesday: DayTurns
+    wednesday: DayTurns
+    thursday: DayTurns
+    friday: DayTurns
+    saturday: DayTurns
+    sunday: DayTurns
 
 
 class MongoTurnsManager:
@@ -93,6 +108,12 @@ class MongoTurnsManager:
         turns = self.collection.find(query)
         return [Turn.from_dict(turn) for turn in turns]
 
+    def get_week_turns(self, day: datetime) -> WeekTurns:
+        week = get_week_by_day(day)
+        week_days = days_in_range(week)
+        turns = self.get_turns_in_range(week)
+        return make_week_dict(turns, week_days)
+
 
 def get_week_by_day(day: datetime) -> TimeRange:
     """Get the week of the given day, starting from Monday"""
@@ -111,21 +132,6 @@ def days_in_range(time_range: TimeRange) -> list[Day]:
     return days
 
 
-class DayTurns(TypedDict):
-    turns: list[Turn]
-    date: Day
-
-
-class WeekTurns(TypedDict):
-    monday: DayTurns
-    tuesday: DayTurns
-    wednesday: DayTurns
-    thursday: DayTurns
-    friday: DayTurns
-    saturday: DayTurns
-    sunday: DayTurns
-
-
 def make_week_dict(turns: list[Turn], week_days: list[Day]) -> WeekTurns:
     week_days_names = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
 
@@ -142,10 +148,3 @@ def make_week_dict(turns: list[Turn], week_days: list[Day]) -> WeekTurns:
         week_dict[day]["turns"].append(turn)
 
     return week_dict
-
-
-def get_week_turns(day: datetime, db_manager: MongoTurnsManager) -> WeekTurns:
-    week = get_week_by_day(day)
-    week_days = days_in_range(week)
-    turns = db_manager.get_turns_in_range(week)
-    return make_week_dict(turns, week_days)

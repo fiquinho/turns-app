@@ -1,0 +1,51 @@
+[
+  {
+    "idx": "TURN-26.02.2024-08.00-OFF_01",
+    "start_date": "26.02.2024_08.00",
+    "end_date": "26.02.2024_10.00",
+    "user_id": "USER_01",
+    "office_id": "OFF_01"
+  },
+  {
+    "idx": "TURN-26.02.2024-10.00-OFF_01",
+    "start_date": "26.02.2024_10.00",
+    "end_date": "26.02.2024_11.00",
+    "user_id": "USER_01",
+    "office_id": "OFF_01"
+  },
+  {
+    "idx": "TURN-26.02.2024-11.00-OFF_01",
+    "start_date": "26.02.2024_11.00",
+    "end_date": "26.02.2024_13.00",
+    "user_id": "USER_01",
+    "office_id": "OFF_01"
+  },
+  {
+    "idx": "TURN-27.02.2024-11.00-OFF_01",
+    "start_date": "27.02.2024_11.00",
+    "end_date": "27.02.2024_13.00",
+    "user_id": "USER_02",
+    "office_id": "OFF_01"
+  },
+  {
+    "idx": "TURN-27.02.2024-13.00-OFF_01",
+    "start_date": "27.02.2024_13.00",
+    "end_date": "27.02.2024_14.00",
+    "user_id": "USER_02",
+    "office_id": "OFF_01"
+  },
+  {
+    "idx": "TURN-29.02.2024-14.00-OFF_01",
+    "start_date": "29.02.2024_14.00",
+    "end_date": "29.02.2024_16.00",
+    "user_id": "USER_02",
+    "office_id": "OFF_01"
+  },
+  {
+    "idx": "TURN-01.03.2024-09.00-OFF_01",
+    "start_date": "01.03.2024_09.00",
+    "end_date": "01.03.2024_13.00",
+    "user_id": "USER_01",
+    "office_id": "OFF_01"
+  }
+]

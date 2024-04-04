@@ -3,7 +3,7 @@ import datetime
 from flask import Blueprint, request, current_app
 from flask_restx import Resource, fields, Api
 
-from turns_app.turns import DATE_FORMAT, get_week_turns
+from turns_app.turns import DATE_FORMAT
 from turns_app.utils.flask_utils import ApiState
 
 
@@ -58,6 +58,6 @@ class GetWeek(Resource):
         day_str: str = params.get('day')
         formatted_day = datetime.datetime.strptime(day_str, DATE_FORMAT)
 
-        week_turns = get_week_turns(formatted_day, db_manager)
+        week_turns = db_manager.get_week_turns(formatted_day)
 
         return week_turns

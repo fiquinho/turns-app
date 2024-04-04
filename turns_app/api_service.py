@@ -19,7 +19,7 @@ CORS(app)
 class CustomJSONEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, Turn):
-            return obj.to_dict()
+            return obj.to_str_dict()
         return json.JSONEncoder.default(self, obj)
 
 
@@ -37,7 +37,7 @@ app.register_blueprint(turns_api)
 
 
 def main():
-    app_config = load_app_config_from_json(CONFIGS_PATH / 'app_config.test.json')
+    app_config = load_app_config_from_json(CONFIGS_PATH / 'app_config.dev.json')
     api_config = ApiState(MongoTurnsManager(app_config.mongo))
     app.config["api_config"] = api_config
     app.run(debug=True)
