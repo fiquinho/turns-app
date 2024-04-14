@@ -4,21 +4,17 @@ from datetime import datetime
 
 import pytest
 
-from turns_app.turns import turn_id_generator, Turn, turn_from_source_dict, MongoTurnsManager, get_week_by_day, \
+from turns_app.model.turns import turn_id_generator, Turn, turn_from_source_dict, MongoTurnsManager, get_week_by_day, \
     TimeRange, make_week_dict, days_in_range
-from turns_app.utils.config_utils import AppConfig, load_app_config_from_json
+from turns_app.utils.config_utils import AppConfig, load_app_config_from_toml
 
-from tests.data_test_db.test_db_init import TEST_CONFIG_FILE
-from tests.defaults import TEST_DATA_DB
-
-
-TURNS_DATA_FILE = TEST_DATA_DB / 'turns.json'
+from tests.defaults import TEST_CONFIG_PATH, TEST_TURNS_FILE
 
 
 @pytest.fixture
 def app_config() -> AppConfig:
     AppConfig.delete_instance()  # type: ignore
-    return load_app_config_from_json(TEST_CONFIG_FILE)
+    return load_app_config_from_toml(TEST_CONFIG_PATH)
 
 
 @pytest.fixture
@@ -39,7 +35,7 @@ def turn(turn_dict) -> Turn:
 
 @pytest.fixture
 def turns_list() -> list[Turn]:
-    with open(TURNS_DATA_FILE, 'r') as file:
+    with open(TEST_TURNS_FILE, 'r') as file:
         turns = json.load(file)
     return [turn_from_source_dict(_turn) for _turn in turns]
 

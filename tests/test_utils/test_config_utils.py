@@ -3,7 +3,7 @@ from dataclasses import dataclass
 import pytest
 
 from turns_app.utils.dataclass_utils import BaseDataclass
-from turns_app.utils.config_utils import singleton, load_app_config_from_json, AppConfig, MongoConfig
+from turns_app.utils.config_utils import singleton, load_app_config_from_toml, AppConfig, MongoConfig, BusinessConfig
 from tests.defaults import TEST_CONFIG_PATH
 
 
@@ -53,14 +53,19 @@ def test_app_config():
     AppConfig.delete_instance()  # type: ignore
     assert AppConfig.check_instance() is False  # type: ignore
 
-    app_config = load_app_config_from_json(TEST_CONFIG_PATH)
+    app_config = load_app_config_from_toml(TEST_CONFIG_PATH)
     assert isinstance(app_config.mongo, MongoConfig)
+    assert isinstance(app_config.business, BusinessConfig)
     assert app_config.mongo.server == "localhost"
     assert app_config.mongo.db == "turns_app-test"
     assert app_config.mongo.port == 27017
+    assert app_config.business.name == "Test Business"
+    assert app_config.business.start_time == 8
+    assert app_config.business.end_time == 21
+    assert app_config.business.min_module_time == 1
 
     with pytest.raises(ValueError):
-        load_app_config_from_json(TEST_CONFIG_PATH)
+        load_app_config_from_toml(TEST_CONFIG_PATH)
 
     assert AppConfig.check_instance() is True  # type: ignore
     assert AppConfig.get_instance() == app_config  # type: ignore

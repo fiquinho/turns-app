@@ -49,6 +49,20 @@ class Turn(BaseDataclass):
             "office_id": self.office_id
         }
 
+# TODO: Finish the random_turn function
+# def random_turn(bc: BusinessConfig, day: Day, max_length: int) -> Turn:
+#     start_time_int = random.randint(bc.start_time, bc.end_time - 1)
+#     start_time = datetime.strptime(f"{day}_{start_time_int}.00", DATETIME_FORMAT)
+#     length = random.randint(0, max_length)
+#     end_time_str = start_time + timedelta(hours=length)
+#     return Turn(
+#         idx=turn_id_generator(start_time, "OFFICE_01"),
+#         start_time=start_time,
+#         end_time=end_time_str,
+#         user_id="USER_01",
+#         office_id="OFFICE_01"
+#     )
+
 
 def turn_from_source_dict(values: dict[str, Any]) -> Turn:
     init_dict = deepcopy(values)
@@ -108,12 +122,6 @@ class MongoTurnsManager:
         turns = self.collection.find(query)
         return [Turn.from_dict(turn) for turn in turns]
 
-    def get_week_turns(self, day: datetime) -> WeekTurns:
-        week = get_week_by_day(day)
-        week_days = days_in_range(week)
-        turns = self.get_turns_in_range(week)
-        return make_week_dict(turns, week_days)
-
 
 def get_week_by_day(day: datetime) -> TimeRange:
     """Get the week of the given day, starting from Monday"""
@@ -148,3 +156,10 @@ def make_week_dict(turns: list[Turn], week_days: list[Day]) -> WeekTurns:
         week_dict[day]["turns"].append(turn)
 
     return week_dict
+
+
+def get_week_turns(manager: MongoTurnsManager, day: datetime) -> WeekTurns:
+    week = get_week_by_day(day)
+    week_days = days_in_range(week)
+    turns = manager.get_turns_in_range(week)
+    return make_week_dict(turns, week_days)

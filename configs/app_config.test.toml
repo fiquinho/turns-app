@@ -1,0 +1,11 @@
+[mongo_config]
+    server = "localhost"
+    port = 27017
+    db = "turns_app-test"
+[business_config]
+    name = "Test Business"
+    # The start and end time of the day in hours
+    start_time = 8
+    end_time = 21
+    # The minimum module time in hours
+    min_module_time = 1

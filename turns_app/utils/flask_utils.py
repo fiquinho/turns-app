@@ -8,7 +8,7 @@ import werkzeug._reloader
 # noinspection PyProtectedMember
 from werkzeug._reloader import _log, _get_args_for_reloading
 
-from turns_app.turns import MongoTurnsManager
+from turns_app.model.turns import MongoTurnsManager
 from turns_app.utils.dataclass_utils import BaseDataclass
 
 

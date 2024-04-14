@@ -1,4 +1,4 @@
-import json
+import toml
 from pathlib import Path
 from dataclasses import dataclass
 
@@ -42,23 +42,34 @@ class MongoConfig(BaseDataclass):
     port: int
 
 
+@dataclass
+class BusinessConfig(BaseDataclass):
+    name: str
+    start_time: int
+    end_time: int
+    min_module_time: int
+
+
 @singleton
 @dataclass
 class AppConfig(BaseDataclass):
     mongo: MongoConfig
+    business: BusinessConfig
 
 
 def is_app_config_instantiated() -> bool:
     return AppConfig.check_instance()  # type: ignore
 
 
-def load_app_config_from_json(config_file: Path) -> AppConfig:
+def load_app_config_from_toml(config_file: Path) -> AppConfig:
 
     if is_app_config_instantiated():
         raise ValueError("The AppConfig has already been instantiated")
 
+    # Open toml file and load the configuration
     with open(config_file, "r") as f:
-        config = json.load(f)
+        config = toml.load(f)
 
-    init_args = {"mongo": MongoConfig.from_dict(config["mongo_config"])}
+    init_args = {"mongo": MongoConfig.from_dict(config["mongo_config"]),
+                 "business": BusinessConfig.from_dict(config["business_config"])}
     return AppConfig(**init_args)

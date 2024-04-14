@@ -4,17 +4,13 @@ from pathlib import Path
 
 from pymongo import MongoClient
 
-from tests.defaults import TEST_DATA_DB
-from turns_app.defaults import CONFIGS_PATH
-from turns_app.turns import turn_from_source_dict
-from turns_app.utils.config_utils import load_app_config_from_json
-
-TEST_CONFIG_FILE = CONFIGS_PATH / "app_config.test.json"
-TEST_DATA_FILE = TEST_DATA_DB / "turns.json"
+from tests.defaults import TEST_CONFIG_PATH, TEST_TURNS_FILE
+from turns_app.model.turns import turn_from_source_dict
+from turns_app.utils.config_utils import load_app_config_from_toml
 
 
 def init_database(config: Path, data_file: Path):
-    test_config = load_app_config_from_json(config)
+    test_config = load_app_config_from_toml(config)
     mongo_config = test_config.mongo
 
     client = MongoClient(mongo_config.server, mongo_config.port)
@@ -38,13 +34,13 @@ def main():
     parser.add_argument(
         "--config",
         type=str,
-        default=TEST_CONFIG_FILE,
+        default=TEST_CONFIG_PATH,
         help="The path to the configuration file"
     )
     parser.add_argument(
         "--data",
         type=str,
-        default=TEST_DATA_FILE,
+        default=TEST_TURNS_FILE,
         help="The path to the data file"
     )
     args = parser.parse_args()

@@ -7,8 +7,8 @@ from flask_cors import CORS
 
 from turns_app.api.turns import turns_api_blueprint as turns_api
 from turns_app.defaults import CONFIGS_PATH
-from turns_app.turns import MongoTurnsManager, Turn
-from turns_app.utils.config_utils import load_app_config_from_json
+from turns_app.model.turns import MongoTurnsManager, Turn
+from turns_app.utils.config_utils import load_app_config_from_toml
 from utils.flask_utils import update_werkzeug_reloader, ApiState
 
 update_werkzeug_reloader()
@@ -37,7 +37,7 @@ app.register_blueprint(turns_api)
 
 
 def main():
-    app_config = load_app_config_from_json(CONFIGS_PATH / 'app_config.dev.json')
+    app_config = load_app_config_from_toml(CONFIGS_PATH / 'app_config.dev.toml')
     api_config = ApiState(MongoTurnsManager(app_config.mongo))
     app.config["api_config"] = api_config
     app.run(debug=True)
