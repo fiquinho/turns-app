@@ -1,7 +1,7 @@
 [mongo_config]
     server = "localhost"
     port = 27017
-    db = "turns_app-test"
+    db_name = "turns_app-test"
 [business_config]
     name = "Test Business"
     # The start and end time of the day in hours

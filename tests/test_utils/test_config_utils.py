@@ -57,7 +57,7 @@ def test_app_config():
     assert isinstance(app_config.mongo, MongoConfig)
     assert isinstance(app_config.business, BusinessConfig)
     assert app_config.mongo.server == "localhost"
-    assert app_config.mongo.db == "turns_app-test"
+    assert app_config.mongo.db_name == "turns_app-test"
     assert app_config.mongo.port == 27017
     assert app_config.business.name == "Test Business"
     assert app_config.business.start_time == 8

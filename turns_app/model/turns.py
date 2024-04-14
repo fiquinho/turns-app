@@ -90,9 +90,7 @@ class MongoTurnsManager:
 
     def __init__(self, mongo_config: MongoConfig):
         self.mongo_config = mongo_config
-        self.client = MongoClient(mongo_config.server, mongo_config.port)
-        self.db = self.client[mongo_config.db]
-        self.collection = self.db.turns
+        self.collection = self.mongo_config.db.turns
 
     def get_turn_by_id(self, turn_id: str) -> Turn:
         turn_dict = self.collection.find_one({"idx": turn_id})

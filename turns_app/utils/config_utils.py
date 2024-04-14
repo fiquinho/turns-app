@@ -2,6 +2,8 @@ import toml
 from pathlib import Path
 from dataclasses import dataclass
 
+from pymongo import MongoClient
+
 from turns_app.utils.dataclass_utils import BaseDataclass
 
 
@@ -38,8 +40,16 @@ def singleton(cls):
 @dataclass
 class MongoConfig(BaseDataclass):
     server: str
-    db: str
+    db_name: str
     port: int
+
+    @property
+    def client(self) -> MongoClient:
+        return MongoClient(self.server, self.port)
+
+    @property
+    def db(self):
+        return self.client[self.db_name]
 
 
 @dataclass

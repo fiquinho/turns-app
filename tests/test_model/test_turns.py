@@ -6,15 +6,8 @@ import pytest
 
 from turns_app.model.turns import turn_id_generator, Turn, turn_from_source_dict, MongoTurnsManager, get_week_by_day, \
     TimeRange, make_week_dict, days_in_range
-from turns_app.utils.config_utils import AppConfig, load_app_config_from_toml
 
-from tests.defaults import TEST_CONFIG_PATH, TEST_TURNS_FILE
-
-
-@pytest.fixture
-def app_config() -> AppConfig:
-    AppConfig.delete_instance()  # type: ignore
-    return load_app_config_from_toml(TEST_CONFIG_PATH)
+from tests.defaults import TEST_TURNS_FILE
 
 
 @pytest.fixture

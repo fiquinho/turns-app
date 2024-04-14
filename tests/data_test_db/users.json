@@ -1,0 +1,23 @@
+[
+  {
+    "id": "USER_02",
+    "name": "Federico Bogado",
+    "email": "fico@test.com",
+    "phone": "123456789",
+    "activity": "Developer"
+  },
+  {
+    "id": "USER_01",
+    "name": "Virginia D'Espósito",
+    "email": "vir@test.com",
+    "phone": "123456789",
+    "activity": "Psicopedagoga"
+  },
+  {
+    "id": "USER_04",
+    "name": "Susana Horia",
+    "email": "susana@other.com",
+    "phone": "987654321",
+    "activity": "Reiki"
+  }
+]
