@@ -4,9 +4,10 @@ from datetime import datetime
 
 import pytest
 
+from tests.conftest import init_database
 from tests.data_test_db.dev_db_init import day_modules
 from turns_app.model.turns import turn_id_generator, Turn, turn_from_source_dict, MongoTurnsManager, get_week_by_day, \
-    TimeRange, make_week_dict, days_in_range
+    TimeRange, make_week_dict, days_in_range, TimeNotAvailableError
 
 from tests.defaults import TEST_TURNS_FILE
 from turns_app.utils.config_utils import BusinessConfig
@@ -44,15 +45,15 @@ def test_turn_id_generator():
 def test_turn_generation():
 
     turn = Turn(
-        idx='TURN-26.02.2024-08.00-office_id',
+        idx='TURN-26.02.2024-08.00-OFF_01',
         start_time=datetime(2024, 2, 26, 8, 0),
-        end_time=datetime(2024, 2, 26, 10, 00),
+        end_time=datetime(2024, 2, 26, 10, 0),
         user_id='USER_01',
         office_id='OFF_01'
     )
-    assert turn.idx == 'TURN-26.02.2024-08.00-office_id'
+    assert turn.idx == 'TURN-26.02.2024-08.00-OFF_01'
     assert turn.start_time == datetime(2024, 2, 26, 8, 0)
-    assert turn.end_time == datetime(2024, 2, 26, 10, 00)
+    assert turn.end_time == datetime(2024, 2, 26, 10, 0)
     assert turn.user_id == 'USER_01'
     assert turn.office_id == 'OFF_01'
 
@@ -66,15 +67,44 @@ def test_turn_from_source_dict(turn_dict):
     assert turn.office_id == 'OFF_01'
 
 
-def test_turns_manager(app_config, turn):
-    manger = MongoTurnsManager(app_config.mongo)
+def test_turns_manager(test_config, turn):
+    manger = MongoTurnsManager(test_config.mongo)
 
     result = manger.get_turn_by_id(turn.idx)
     assert result == turn
 
 
-def test_turns_manager_range(app_config, turns_list):
-    manger = MongoTurnsManager(app_config.mongo)
+def test_turns_manager_insert(test_config):
+    manger = MongoTurnsManager(test_config.mongo)
+    turn = Turn(
+        idx='TURN-26.02.2024-16.00-OFF_01',
+        start_time=datetime(2024, 2, 26, 16, 0),
+        end_time=datetime(2024, 2, 26, 19, 0),
+        user_id='USER_01',
+        office_id='OFF_01'
+    )
+    manger.insert_turn(turn)
+
+    result = manger.get_turn_by_id(turn.idx)
+    assert result == turn
+
+    new_turn = Turn(
+        idx='XXXX',
+        start_time=datetime(2024, 2, 26, 18, 0),
+        end_time=datetime(2024, 2, 26, 19, 0),
+        user_id='USER_01',
+        office_id='OFF_01'
+    )
+
+    with pytest.raises(ValueError):
+        manger.insert_turn(turn)
+    with pytest.raises(TimeNotAvailableError):
+        manger.insert_turn(new_turn)
+
+
+def test_turns_manager_range(test_config, turns_list):
+    init_database(test_config)
+    manger = MongoTurnsManager(test_config.mongo)
 
     start_time = datetime(2024, 2, 26, 8, 0)
     end_time = datetime(2024, 2, 27, 14, 0)

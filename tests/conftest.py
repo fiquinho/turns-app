@@ -1,5 +1,4 @@
 import json
-from pathlib import Path
 
 import pytest
 
@@ -9,21 +8,21 @@ from turns_app.model.users import User
 from turns_app.utils.config_utils import AppConfig, load_app_config_from_toml
 
 
-@pytest.fixture
-def app_config() -> AppConfig:
+def get_test_config() -> AppConfig:
     AppConfig.delete_instance()  # type: ignore
     return load_app_config_from_toml(TEST_CONFIG_PATH)
 
 
-def init_database(config: Path):
-    test_config = load_app_config_from_toml(config)
-    mongo_config = test_config.mongo
+@pytest.fixture
+def test_config() -> AppConfig:
+    return get_test_config()
 
-    print("Deleting the test databases...")
+
+def init_database(config):
+    mongo_config = config.mongo
+
     mongo_config.db.drop_collection('turns')
     mongo_config.db.drop_collection('users')
-
-    print('Setting up the test databases...')
 
     with open(TEST_TURNS_FILE, "r", encoding='utf-8') as f:
         data = json.load(f)
@@ -36,4 +35,4 @@ def init_database(config: Path):
     mongo_config.db.users.insert_many([user.to_dict() for user in users])
 
 
-init_database(TEST_CONFIG_PATH)
+init_database(get_test_config())

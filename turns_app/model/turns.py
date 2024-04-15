@@ -54,8 +54,8 @@ class Turn(BaseDataclass):
 
 def turn_from_source_dict(values: dict[str, Any]) -> Turn:
     init_dict = deepcopy(values)
-    init_dict["start_time"] = datetime.strptime(values["start_date"], "%d.%m.%Y_%H.%M")
-    init_dict["end_time"] = datetime.strptime(values["end_date"], "%d.%m.%Y_%H.%M")
+    init_dict["start_time"] = datetime.strptime(values["start_date"], DATETIME_FORMAT)
+    init_dict["end_time"] = datetime.strptime(values["end_date"], DATETIME_FORMAT)
     return Turn.from_dict(init_dict)
 
 

@@ -44,16 +44,16 @@ def test_user_to_dict(user_dict):
     assert result == user_dict
 
 
-def test_users_manager_create(app_config, user):
-    manger = MongoUsersManager(app_config.mongo)
+def test_users_manager_create(test_config, user):
+    manger = MongoUsersManager(test_config.mongo)
     manger.create_user(user)
 
     with pytest.raises(UserExistsError):
         manger.create_user(user)
 
 
-def test_users_manager_get_by_id(app_config, users_list):
-    manger = MongoUsersManager(app_config.mongo)
+def test_users_manager_get_by_id(test_config, users_list):
+    manger = MongoUsersManager(test_config.mongo)
 
     result = manger.get_by_id(users_list[0].id)
     assert result == users_list[0]

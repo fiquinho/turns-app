@@ -1,4 +1,3 @@
-# pycharm_flask_debug_patch.py
 import os
 import subprocess
 from dataclasses import dataclass
@@ -17,6 +16,7 @@ class ApiState(BaseDataclass):
     db_manager: MongoTurnsManager
 
 
+# pycharm_flask_debug_patch.py
 def restart_with_reloader_patch(self) -> int:
     """Spawn a new Python interpreter with the same arguments as the
     current one, but running the reloader thread.
