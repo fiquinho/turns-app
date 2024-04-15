@@ -4,10 +4,12 @@ from datetime import datetime
 
 import pytest
 
+from tests.data_test_db.dev_db_init import day_modules
 from turns_app.model.turns import turn_id_generator, Turn, turn_from_source_dict, MongoTurnsManager, get_week_by_day, \
     TimeRange, make_week_dict, days_in_range
 
 from tests.defaults import TEST_TURNS_FILE
+from turns_app.utils.config_utils import BusinessConfig
 
 
 @pytest.fixture
@@ -136,3 +138,17 @@ def test_make_week_dict(turns_list):
     assert len(result['tuesday']['turns']) == 2
 
     assert isinstance(result['tuesday']['turns'][0], Turn)
+
+
+def test_day_modules(turns_list):
+    bc = BusinessConfig(name='Test', start_time="08.00", end_time="18.00", min_module_time=30, offices=["OFF_01"])
+    modules = day_modules("26.02.2024", bc)
+    assert len(modules) == 20
+    assert modules[0].start_time == datetime(2024, 2, 26, 8, 0)
+    assert modules[0].end_time == datetime(2024, 2, 26, 8, 30)
+    assert modules[-1].start_time == datetime(2024, 2, 26, 17, 30)
+    assert modules[-1].end_time == datetime(2024, 2, 26, 18, 0)
+    assert modules[10].start_time == datetime(2024, 2, 26, 13, 0)
+    assert modules[10].end_time == datetime(2024, 2, 26, 13, 30)
+    assert modules[19].start_time == datetime(2024, 2, 26, 17, 30)
+    assert modules[19].end_time == datetime(2024, 2, 26, 18, 0)

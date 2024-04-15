@@ -3,8 +3,6 @@ from datetime import datetime, timedelta
 from dataclasses import dataclass
 from typing import Any, TypedDict
 
-from pymongo import MongoClient
-
 from turns_app.utils.config_utils import MongoConfig
 from turns_app.utils.dataclass_utils import BaseDataclass
 
@@ -49,19 +47,9 @@ class Turn(BaseDataclass):
             "office_id": self.office_id
         }
 
-# TODO: Finish the random_turn function
-# def random_turn(bc: BusinessConfig, day: Day, max_length: int) -> Turn:
-#     start_time_int = random.randint(bc.start_time, bc.end_time - 1)
-#     start_time = datetime.strptime(f"{day}_{start_time_int}.00", DATETIME_FORMAT)
-#     length = random.randint(0, max_length)
-#     end_time_str = start_time + timedelta(hours=length)
-#     return Turn(
-#         idx=turn_id_generator(start_time, "OFFICE_01"),
-#         start_time=start_time,
-#         end_time=end_time_str,
-#         user_id="USER_01",
-#         office_id="OFFICE_01"
-#     )
+    @property
+    def duration(self) -> TimeRange:
+        return TimeRange(self.start_time, self.end_time)
 
 
 def turn_from_source_dict(values: dict[str, Any]) -> Turn:
@@ -86,6 +74,10 @@ class WeekTurns(TypedDict):
     sunday: DayTurns
 
 
+class TimeNotAvailableError(Exception):
+    pass
+
+
 class MongoTurnsManager:
 
     def __init__(self, mongo_config: MongoConfig):
@@ -95,6 +87,13 @@ class MongoTurnsManager:
     def get_turn_by_id(self, turn_id: str) -> Turn:
         turn_dict = self.collection.find_one({"idx": turn_id})
         return Turn.from_dict(turn_dict)
+
+    def insert_turn(self, turn: Turn) -> None:
+        if self.collection.find_one({"idx": turn.idx}):
+            raise ValueError(f"Turn with ID {turn.idx} already exists.")
+        if self.get_turns_in_range(turn.duration):
+            raise TimeNotAvailableError(f"Turn time is already taken.")
+        self.collection.insert_one(turn.to_dict())
 
     def get_turns_in_range(self, time_range: TimeRange) -> list[Turn]:
         query = {"$or": [

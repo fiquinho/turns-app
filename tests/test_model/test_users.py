@@ -24,7 +24,7 @@ def user(user_dict) -> User:
 
 @pytest.fixture
 def users_list() -> list[User]:
-    with open(TEST_USERS_FILE, 'r') as file:
+    with open(TEST_USERS_FILE, 'r', encoding="utf8") as file:
         users = json.load(file)
     return [User.from_dict(_user) for _user in users]
 

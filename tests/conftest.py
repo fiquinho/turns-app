@@ -25,12 +25,12 @@ def init_database(config: Path):
 
     print('Setting up the test databases...')
 
-    with open(TEST_TURNS_FILE, "r") as f:
+    with open(TEST_TURNS_FILE, "r", encoding='utf-8') as f:
         data = json.load(f)
     turns = [turn_from_source_dict(turn) for turn in data]
     mongo_config.db.turns.insert_many([turn.to_dict() for turn in turns])
 
-    with open(TEST_USERS_FILE, "r") as f:
+    with open(TEST_USERS_FILE, "r", encoding='utf-8') as f:
         data = json.load(f)
     users = [User.from_dict(user) for user in data]
     mongo_config.db.users.insert_many([user.to_dict() for user in users])

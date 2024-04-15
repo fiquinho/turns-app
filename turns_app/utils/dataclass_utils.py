@@ -1,6 +1,6 @@
 import inspect
 from dataclasses import dataclass
-from typing import Any, get_type_hints, TypeVar
+from typing import Any, get_type_hints, TypeVar, get_args
 
 
 @dataclass
@@ -30,7 +30,12 @@ class BaseDataclass:
         hints = get_type_hints(self)
         for attr, attr_type in hints.items():
             value = getattr(self, attr)
-            if not isinstance(value, attr_type):
+            if hasattr(attr_type, "__origin__") and attr_type.__origin__ == list:
+                # If the attribute type is a list, get its inner type
+                inner_type = get_args(attr_type)[0]
+                if not all(isinstance(item, inner_type) for item in value):
+                    raise TypeError(f"Attribute '{attr}' must be a list of type '{inner_type}', got '{type(value)}'")
+            elif not isinstance(value, attr_type):
                 raise TypeError(f"Attribute '{attr}' must be of type '{attr_type}', got '{type(value)}'")
 
     def to_dict(self) -> dict[str, Any]:

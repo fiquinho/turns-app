@@ -14,7 +14,7 @@ def init_database(config: Path, data_file: Path):
     mongo_config = test_config.mongo
 
     client = MongoClient(mongo_config.server, mongo_config.port)
-    db = client[mongo_config.db]
+    db = client[mongo_config.db_name]
 
     print("Deleting the test database...")
     db.drop_collection('turns')

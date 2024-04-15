@@ -4,8 +4,10 @@
     db_name = "turns_app-dev"
 [business_config]
     name = "Dev Business"
-    # The start and end time of the day in hours
-    start_time = 8
-    end_time = 21
-    # The minimum module time in hours
-    min_module_time = 1
+    # The start and end time as a string in the format "HH.MM"
+    start_time = "08.00"
+    end_time = "21.00"
+    # The minimum module time in minutes
+    min_module_time = 60
+    # Available offices
+    offices = ["office1", "office2", "office3", "office4"]

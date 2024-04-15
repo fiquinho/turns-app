@@ -60,9 +60,10 @@ def test_app_config():
     assert app_config.mongo.db_name == "turns_app-test"
     assert app_config.mongo.port == 27017
     assert app_config.business.name == "Test Business"
-    assert app_config.business.start_time == 8
-    assert app_config.business.end_time == 21
-    assert app_config.business.min_module_time == 1
+    assert app_config.business.start_time == "08.00"
+    assert app_config.business.end_time == "21.00"
+    assert app_config.business.min_module_time == 60
+    assert app_config.business.offices == ['OFFICE_01', 'OFFICE_02']
 
     with pytest.raises(ValueError):
         load_app_config_from_toml(TEST_CONFIG_PATH)

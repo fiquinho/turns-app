@@ -3,6 +3,7 @@ from pathlib import Path
 from dataclasses import dataclass
 
 from pymongo import MongoClient
+from pymongo.database import Database
 
 from turns_app.utils.dataclass_utils import BaseDataclass
 
@@ -48,16 +49,17 @@ class MongoConfig(BaseDataclass):
         return MongoClient(self.server, self.port)
 
     @property
-    def db(self):
+    def db(self) -> Database:
         return self.client[self.db_name]
 
 
 @dataclass
 class BusinessConfig(BaseDataclass):
     name: str
-    start_time: int
-    end_time: int
-    min_module_time: int
+    start_time: str         # Format: "HH.MM"
+    end_time: str           # Format: "HH.MM"
+    min_module_time: int    # In minutes
+    offices: list[str]
 
 
 @singleton
