@@ -10,4 +10,4 @@
     # The minimum module time in minutes
     min_module_time = 60
     # Available offices
-    offices = ["office1", "office2", "office3", "office4"]
+    offices = ["Consultorio_1", "Consultorio_2", "Consultorio_3", "Consultorio_4"]

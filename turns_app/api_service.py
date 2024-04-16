@@ -1,14 +1,14 @@
 # Swagger API with Flask
 import json
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, Blueprint
 from flask_cors import CORS
-
+from flask_restx import Api, fields, Resource
 
 from turns_app.api.turns import turns_api_blueprint as turns_api
 from turns_app.defaults import CONFIGS_PATH
 from turns_app.model.turns import MongoTurnsManager, Turn
-from turns_app.utils.config_utils import load_app_config_from_toml
+from turns_app.utils.config_utils import load_app_config_from_toml, AppConfig
 from utils.flask_utils import update_werkzeug_reloader, ApiState
 
 update_werkzeug_reloader()
@@ -27,10 +27,51 @@ class CustomJSONEncoder(json.JSONEncoder):
 json.JSONEncoder = CustomJSONEncoder
 
 
-@app.route('/heartbeat', methods=['GET'])
-def heartbeat():
-    return jsonify({'status': 'ok',
-                    'message': 'The service is running'})
+api_blueprint = Blueprint('turns_app_api', __name__)
+api_extension = Api(
+    api_blueprint,
+    title='Turns APP API',
+    version='0.1',
+    description='Turns PP API for general services',
+    doc='/doc'
+)
+
+
+heartbeat_model = api_extension.model('Heartbeat', {
+    "status": fields.String(required=True, description="Service status"),
+    "message": fields.String(required=True, description="Service message")
+})
+
+
+business_info_model = api_extension.model('BusinessInfo', {
+    "name": fields.String(required=True, description="Business name"),
+    "start_time": fields.String(required=True, description="Business address"),
+    "end_time": fields.String(required=True, description="Business phone"),
+    "min_module_time": fields.Integer(required=True, description="Business minimum module time in minutes"),
+    "offices": fields.List(fields.String, required=True, description="List of office names")
+})
+
+
+@api_extension.route('/heartbeat', methods=['GET'])
+class Heartbeat(Resource):
+
+    @api_extension.marshal_with(heartbeat_model)
+    def get(self):
+        return jsonify({'status': 'ok',
+                        'message': 'The service is running'})
+
+
+app.register_blueprint(api_blueprint)
+
+
+@api_extension.route('/business_info', methods=['GET'])
+class BusinessInfo(Resource):
+
+    @api_extension.marshal_with(business_info_model)
+    def get(self):
+        app_config: AppConfig = AppConfig.get_instance()  # type: ignore
+        bc = app_config.business
+        return bc.to_dict()
 
 
 app.register_blueprint(turns_api)

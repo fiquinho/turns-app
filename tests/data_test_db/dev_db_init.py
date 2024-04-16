@@ -63,7 +63,7 @@ def init_database(config: Path):
     week_days = days_in_range(week_range)
 
     # Generate random turns for the week.
-    total = 15
+    total = 40
     generated = 0
     while generated < total:
         day = random.choice(week_days)
