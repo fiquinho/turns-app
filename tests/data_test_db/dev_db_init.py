@@ -6,8 +6,8 @@ from pathlib import Path
 
 from tests.defaults import TEST_USERS_FILE
 from turns_app.defaults import CONFIGS_PATH
-from turns_app.model.turns import get_week_by_day, days_in_range, Day, TimeRange, \
-    DATETIME_FORMAT, Turn, turn_id_generator, MongoTurnsManager
+from turns_app.model.turns import Turn, turn_id_generator, MongoTurnsManager, TurnNotAvailableError
+from turns_app.utils.time_utils import TimeRange, Day, DATETIME_FORMAT, get_week_by_day, days_in_range
 from turns_app.model.users import User
 from turns_app.utils.config_utils import load_app_config_from_toml, AppConfig, BusinessConfig
 
@@ -26,11 +26,10 @@ def day_modules(day: Day, bc: BusinessConfig) -> list[TimeRange]:
     return modules
 
 
-# TODO: Finish the random_turn function
 def random_turn_time(bc: BusinessConfig, day: Day) -> TimeRange:
     modules = day_modules(day, bc)
     start_module = random.randint(0, len(modules) - 1)
-    length = random.randint(0, 5)
+    length = random.randint(0, 4)
     end_module = start_module + length
     if end_module >= len(modules):
         end_module = len(modules) - 1
@@ -64,7 +63,7 @@ def init_database(config: Path):
     week_days = days_in_range(week_range)
 
     # Generate random turns for the week.
-    total = 10
+    total = 15
     generated = 0
     while generated < total:
         day = random.choice(week_days)
@@ -78,11 +77,11 @@ def init_database(config: Path):
                     start_time=time_range.start_time,
                     end_time=time_range.end_time)
 
-        if turns_manager.get_turns_in_range(time_range):
+        try:
+            turns_manager.insert_turn(turn)
+            generated += 1
+        except TurnNotAvailableError:
             continue
-
-        turns_manager.insert_turn(turn)
-        generated += 1
 
 
 def main():

@@ -63,7 +63,7 @@ def test_app_config():
     assert app_config.business.start_time == "08.00"
     assert app_config.business.end_time == "21.00"
     assert app_config.business.min_module_time == 60
-    assert app_config.business.offices == ['OFFICE_01', 'OFFICE_02']
+    assert app_config.business.offices == ['OFF_01', 'OFF_02']
 
     with pytest.raises(ValueError):
         load_app_config_from_toml(TEST_CONFIG_PATH)

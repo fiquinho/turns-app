@@ -6,8 +6,9 @@ import pytest
 
 from tests.conftest import init_database
 from tests.data_test_db.dev_db_init import day_modules
-from turns_app.model.turns import turn_id_generator, Turn, turn_from_source_dict, MongoTurnsManager, get_week_by_day, \
-    TimeRange, make_week_dict, days_in_range, TimeNotAvailableError
+from turns_app.model.turns import turn_id_generator, Turn, turn_from_source_dict, MongoTurnsManager, make_week_dict, \
+    TurnNotAvailableError
+from turns_app.utils.time_utils import TimeRange, get_week_by_day, days_in_range
 
 from tests.defaults import TEST_TURNS_FILE
 from turns_app.utils.config_utils import BusinessConfig
@@ -74,34 +75,6 @@ def test_turns_manager(test_config, turn):
     assert result == turn
 
 
-def test_turns_manager_insert(test_config):
-    manger = MongoTurnsManager(test_config.mongo)
-    turn = Turn(
-        idx='TURN-26.02.2024-16.00-OFF_01',
-        start_time=datetime(2024, 2, 26, 16, 0),
-        end_time=datetime(2024, 2, 26, 19, 0),
-        user_id='USER_01',
-        office_id='OFF_01'
-    )
-    manger.insert_turn(turn)
-
-    result = manger.get_turn_by_id(turn.idx)
-    assert result == turn
-
-    new_turn = Turn(
-        idx='XXXX',
-        start_time=datetime(2024, 2, 26, 18, 0),
-        end_time=datetime(2024, 2, 26, 19, 0),
-        user_id='USER_01',
-        office_id='OFF_01'
-    )
-
-    with pytest.raises(ValueError):
-        manger.insert_turn(turn)
-    with pytest.raises(TimeNotAvailableError):
-        manger.insert_turn(new_turn)
-
-
 def test_turns_manager_range(test_config, turns_list):
     init_database(test_config)
     manger = MongoTurnsManager(test_config.mongo)
@@ -128,25 +101,39 @@ def test_turns_manager_range(test_config, turns_list):
     assert result == [result[0]]
 
 
-def test_get_week_by_day():
-    week_start = datetime(2024, 2, 26)
-    week_end = datetime(2024, 3, 4)
+def test_turns_manager_insert(test_config):
+    manger = MongoTurnsManager(test_config.mongo)
+    turn = Turn(
+        idx='TURN-26.02.2024-16.00-OFF_01',
+        start_time=datetime(2024, 2, 26, 16, 0),
+        end_time=datetime(2024, 2, 26, 19, 0),
+        user_id='USER_01',
+        office_id='OFF_01'
+    )
+    manger.insert_turn(turn)
 
-    day = datetime(2024, 2, 27)
-    result = get_week_by_day(day)
-    assert result.start_time == week_start
-    assert result.end_time == week_end
+    result = manger.get_turn_by_id(turn.idx)
+    assert result == turn
 
+    conflict_office_turn = Turn(
+        idx='XXXX',
+        start_time=datetime(2024, 2, 26, 18, 0),
+        end_time=datetime(2024, 2, 26, 19, 0),
+        user_id='OTHER_USER',
+        office_id='OFF_01'
+    )
+    with pytest.raises(TurnNotAvailableError):
+        manger.insert_turn(conflict_office_turn)
 
-def test_days_in_range():
-    day = datetime(2024, 2, 27)
-    week_range = get_week_by_day(day)
-    result = days_in_range(week_range)
-
-    assert len(result) == 7
-    assert result[0] == "26.02.2024"
-    assert result[1] == "27.02.2024"
-    assert result[-1] == "03.03.2024"
+    conflict_user_turn = Turn(
+        idx='XXXX',
+        start_time=datetime(2024, 2, 26, 18, 0),
+        end_time=datetime(2024, 2, 26, 19, 0),
+        user_id='USER_01',
+        office_id='OTHER_OFFICE'
+    )
+    with pytest.raises(TurnNotAvailableError):
+        manger.insert_turn(conflict_user_turn)
 
 
 def test_make_week_dict(turns_list):

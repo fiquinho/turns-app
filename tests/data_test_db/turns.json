@@ -18,7 +18,7 @@
     "start_date": "26.02.2024_11.00",
     "end_date": "26.02.2024_13.00",
     "user_id": "USER_01",
-    "office_id": "OFF_01"
+    "office_id": "OFF_02"
   },
   {
     "idx": "TURN-27.02.2024-11.00-OFF_01",
@@ -32,6 +32,6 @@
     "start_date": "27.02.2024_13.00",
     "end_date": "27.02.2024_14.00",
     "user_id": "USER_02",
-    "office_id": "OFF_01"
+    "office_id": "OFF_02"
   }
 ]

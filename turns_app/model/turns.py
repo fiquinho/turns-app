@@ -1,24 +1,13 @@
 from copy import deepcopy
-from datetime import datetime, timedelta
+from datetime import datetime
 from dataclasses import dataclass
 from typing import Any, TypedDict
 
 from turns_app.utils.config_utils import MongoConfig
 from turns_app.utils.dataclass_utils import BaseDataclass
-
-
-DATE_FORMAT = "%d.%m.%Y"
-TIME_FORMAT = "%H.%M"
-DATETIME_FORMAT = f"{DATE_FORMAT}_{TIME_FORMAT}"
-
-
-Day = str  # Format: "DD.MM.YYYY"
-
-
-@dataclass
-class TimeRange:
-    start_time: datetime
-    end_time: datetime
+from turns_app.utils.mongo_utils import turns_in_range_query
+from turns_app.utils.time_utils import TimeRange, Day, TIME_FORMAT, DATETIME_FORMAT, DATE_FORMAT, get_week_by_day, \
+    days_in_range
 
 
 def turn_id_generator(start_time: datetime, office_id: str) -> str:
@@ -74,7 +63,7 @@ class WeekTurns(TypedDict):
     sunday: DayTurns
 
 
-class TimeNotAvailableError(Exception):
+class TurnNotAvailableError(Exception):
     pass
 
 
@@ -88,53 +77,34 @@ class MongoTurnsManager:
         turn_dict = self.collection.find_one({"idx": turn_id})
         return Turn.from_dict(turn_dict)
 
+    def conflict_turn(self, turn: Turn) -> Turn | None:
+        query = {"$or": [
+            {"$and": [turns_in_range_query(turn.duration),
+                      {"user_id": turn.user_id}]},
+            {"$and": [turns_in_range_query(turn.duration),
+                      {"office_id": turn.office_id}]}
+        ]}
+        conflict = self.collection.find_one(query)
+        if conflict:
+            return Turn.from_dict(conflict)
+        return None
+
+    # TODO: Are exceptions the best way to handle this?
     def insert_turn(self, turn: Turn) -> None:
-        if self.collection.find_one({"idx": turn.idx}):
-            raise ValueError(f"Turn with ID {turn.idx} already exists.")
-        if self.get_turns_in_range(turn.duration):
-            raise TimeNotAvailableError(f"Turn time is already taken.")
+        conflict = self.conflict_turn(turn)
+        if conflict:
+            if conflict.user_id == turn.user_id:
+                raise TurnNotAvailableError(f"User {turn.user_id} has a turn at the same time.")
+            if conflict.office_id == turn.office_id:
+                raise TurnNotAvailableError(f"Office {turn.office_id} has a turn at the same time.")
+
         self.collection.insert_one(turn.to_dict())
 
     def get_turns_in_range(self, time_range: TimeRange) -> list[Turn]:
-        query = {"$or": [
-            # End time between the range
-            {"$and": [
-                {"end_time": {"$gt": time_range.start_time}},
-                {"end_time": {"$lte": time_range.end_time}}
-            ]},
-
-            # Start time between the range
-            {"$and": [
-                {"start_time": {"$gte": time_range.start_time}},
-                {"start_time": {"$lt": time_range.end_time}}
-            ]},
-
-            # Starts before and ends after the range
-            {"$and": [
-                {"start_time": {"$lt": time_range.start_time}},
-                {"end_time": {"$gt": time_range.end_time}}
-            ]}
-        ]}
+        query = turns_in_range_query(time_range)
 
         turns = self.collection.find(query)
         return [Turn.from_dict(turn) for turn in turns]
-
-
-def get_week_by_day(day: datetime) -> TimeRange:
-    """Get the week of the given day, starting from Monday"""
-    start_of_week = day - timedelta(days=day.weekday())
-    end_of_week = start_of_week + timedelta(days=7)
-    return TimeRange(start_of_week, end_of_week)
-
-
-def days_in_range(time_range: TimeRange) -> list[Day]:
-    """Get all the days in the given time range"""
-    days = []
-    current_day = time_range.start_time
-    while current_day < time_range.end_time:
-        days.append(current_day.strftime(DATE_FORMAT))
-        current_day += timedelta(days=1)
-    return days
 
 
 def make_week_dict(turns: list[Turn], week_days: list[Day]) -> WeekTurns:

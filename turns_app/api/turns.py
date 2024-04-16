@@ -3,7 +3,8 @@ import datetime
 from flask import Blueprint, request, current_app
 from flask_restx import Resource, fields, Api
 
-from turns_app.model.turns import DATE_FORMAT, get_week_turns
+from turns_app.model.turns import get_week_turns
+from turns_app.utils.time_utils import DATE_FORMAT
 from turns_app.utils.flask_utils import ApiState
 
 
