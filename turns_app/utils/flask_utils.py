@@ -8,12 +8,22 @@ import werkzeug._reloader
 from werkzeug._reloader import _log, _get_args_for_reloading
 
 from turns_app.model.turns import MongoTurnsManager
+from turns_app.model.users import MongoUsersManager
+from turns_app.utils.config_utils import AppConfig
 from turns_app.utils.dataclass_utils import BaseDataclass
 
 
 @dataclass
 class ApiState(BaseDataclass):
-    db_manager: MongoTurnsManager
+    turns_manager: MongoTurnsManager
+    users_manager: MongoUsersManager
+
+    @classmethod
+    def from_app_config(cls, app_config: AppConfig) -> 'ApiState':
+        return cls(
+            turns_manager=MongoTurnsManager(app_config.mongo),
+            users_manager=MongoUsersManager(app_config.mongo)
+        )
 
 
 # pycharm_flask_debug_patch.py

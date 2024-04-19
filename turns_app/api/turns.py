@@ -56,7 +56,7 @@ class GetWeek(Resource):
     @turns_api_extension.marshal_with(week_turns_model)
     def get(self):
         api_state: ApiState = current_app.config["api_config"]
-        db_manager = api_state.db_manager
+        db_manager = api_state.turns_manager
 
         # get request dict
         params = dict(request.args)

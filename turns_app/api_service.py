@@ -6,8 +6,9 @@ from flask_cors import CORS
 from flask_restx import Api, fields, Resource
 
 from turns_app.api.turns import turns_api_blueprint as turns_api
+from turns_app.api.users import users_api_blueprint as users_api
 from turns_app.defaults import CONFIGS_PATH
-from turns_app.model.turns import MongoTurnsManager, Turn
+from turns_app.model.turns import Turn
 from turns_app.utils.config_utils import load_app_config_from_toml, AppConfig
 from utils.flask_utils import update_werkzeug_reloader, ApiState
 
@@ -61,9 +62,6 @@ class Heartbeat(Resource):
                         'message': 'The service is running'})
 
 
-app.register_blueprint(api_blueprint)
-
-
 @api_extension.route('/business_info', methods=['GET'])
 class BusinessInfo(Resource):
 
@@ -74,12 +72,14 @@ class BusinessInfo(Resource):
         return bc.to_dict()
 
 
+app.register_blueprint(api_blueprint)
 app.register_blueprint(turns_api)
+app.register_blueprint(users_api)
 
 
 def main():
     app_config = load_app_config_from_toml(CONFIGS_PATH / 'app_config.dev.toml')
-    api_config = ApiState(MongoTurnsManager(app_config.mongo))
+    api_config = ApiState.from_app_config(app_config)
     app.config["api_config"] = api_config
     app.run(debug=True)
 
