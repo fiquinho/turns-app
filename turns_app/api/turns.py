@@ -21,11 +21,16 @@ day_model = turns_api_extension.model('Day', {
     "day": fields.String(required=True, description="Day as string. Format: 'DD.MM.YYYY'")
 })
 
+named_user_model = turns_api_extension.model('NamedUser', {
+    "id": fields.String(required=True, description="User unique identifier"),
+    "name": fields.String(required=True, description="User name")
+})
+
 turn_model = turns_api_extension.model('Turn', {
     "idx": fields.String(required=True, description="Turn unique identifier"),
     "start_time": fields.String(required=True, description="Turn start time"),
     "end_time": fields.String(required=True, description="Turn end time"),
-    "user_id": fields.String(required=True, description="User unique identifier"),
+    "user": fields.Nested(named_user_model, required=True, description="User"),
     "office_id": fields.String(required=True, description="Office unique identifier")
 })
 turns_list_model = turns_api_extension.model('TurnsList', {
