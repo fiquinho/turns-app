@@ -3,6 +3,7 @@ from datetime import datetime
 from dataclasses import dataclass
 from typing import Any, TypedDict
 
+from turns_app.model.users import NamedUser
 from turns_app.utils.config_utils import MongoConfig
 from turns_app.utils.dataclass_utils import BaseDataclass
 from turns_app.utils.mongo_utils import turns_in_range_query
@@ -24,7 +25,7 @@ class Turn(BaseDataclass):
     start_time: datetime  # Turn start time
     end_time: datetime    # Turn end time
 
-    user_id: str          # User unique identifier
+    user: NamedUser       # User unique identifier
     office_id: str        # Office unique identifier
 
     def to_str_dict(self) -> dict[str, Any]:
@@ -32,7 +33,7 @@ class Turn(BaseDataclass):
             "idx": self.idx,
             "start_time": self.start_time.strftime(DATETIME_FORMAT),
             "end_time": self.end_time.strftime(DATETIME_FORMAT),
-            "user_id": self.user_id,
+            "user_id": self.user.to_dict(),
             "office_id": self.office_id
         }
 
@@ -80,7 +81,7 @@ class MongoTurnsManager:
     def conflict_turn(self, turn: Turn) -> Turn | None:
         query = {"$or": [
             {"$and": [turns_in_range_query(turn.duration),
-                      {"user_id": turn.user_id}]},
+                      {"user.id": turn.user.id}]},
             {"$and": [turns_in_range_query(turn.duration),
                       {"office_id": turn.office_id}]}
         ]}
@@ -93,8 +94,8 @@ class MongoTurnsManager:
     def insert_turn(self, turn: Turn) -> None:
         conflict = self.conflict_turn(turn)
         if conflict:
-            if conflict.user_id == turn.user_id:
-                raise TurnNotAvailableError(f"User {turn.user_id} has a turn at the same time.")
+            if conflict.user.id == turn.user.id:
+                raise TurnNotAvailableError(f"User {turn.user.id} has a turn at the same time.")
             if conflict.office_id == turn.office_id:
                 raise TurnNotAvailableError(f"Office {turn.office_id} has a turn at the same time.")
 

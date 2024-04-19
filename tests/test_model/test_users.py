@@ -72,7 +72,7 @@ def test_user_to_dict(user_dict):
 
 def test_user_to_named_user(user_dict):
     user = User.from_dict(user_dict)
-    named_user = user.named_user
+    named_user = user.get_named_user()
     assert named_user.id == user.id
     assert named_user.name == user.name
 

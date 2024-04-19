@@ -93,3 +93,9 @@ def test_nested_dataclass(example_dict):
     assert isinstance(nested_example.example, ExampleDataclass)
     assert isinstance(nested_example.example, BaseDataclass)
     assert issubclass(NestedDataclass, BaseDataclass)
+
+
+def test_nested_to_dict(example_dict):
+    nested_example = NestedDataclass(1, ExampleDataclass(**example_dict))
+    result = nested_example.to_dict()
+    assert result == {'idx': 1, 'example': example_dict}

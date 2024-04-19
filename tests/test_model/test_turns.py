@@ -8,10 +8,20 @@ from tests.conftest import init_database
 from tests.data_test_db.dev_db_init import day_modules
 from turns_app.model.turns import turn_id_generator, Turn, turn_from_source_dict, MongoTurnsManager, make_week_dict, \
     TurnNotAvailableError
+from turns_app.model.users import NamedUser
 from turns_app.utils.time_utils import TimeRange, get_week_by_day, days_in_range
 
 from tests.defaults import TEST_TURNS_FILE
 from turns_app.utils.config_utils import BusinessConfig
+from tests.conftest import test_config
+
+
+@pytest.fixture
+def named_user() -> NamedUser:
+    return NamedUser(
+        id='USER_01',
+        name="Virginia D'Espósito"
+    )
 
 
 @pytest.fixture
@@ -20,7 +30,10 @@ def turn_dict() -> dict[str, Any]:
         "idx": "TURN-26.02.2024-08.00-OFF_01",
         "start_date": "26.02.2024_08.00",
         "end_date": "26.02.2024_10.00",
-        "user_id": "USER_01",
+        "user": {
+            "id": "USER_01",
+            "name": "Virginia D'Espósito"
+        },
         "office_id": "OFF_01"
     }
 
@@ -32,7 +45,7 @@ def turn(turn_dict) -> Turn:
 
 @pytest.fixture
 def turns_list() -> list[Turn]:
-    with open(TEST_TURNS_FILE, 'r') as file:
+    with open(TEST_TURNS_FILE, 'r', encoding="utf8") as file:
         turns = json.load(file)
     return [turn_from_source_dict(_turn) for _turn in turns]
 
@@ -43,28 +56,28 @@ def test_turn_id_generator():
     assert result == 'TURN-26.02.2024-08.00-office_id'
 
 
-def test_turn_generation():
+def test_turn_generation(named_user):
 
     turn = Turn(
         idx='TURN-26.02.2024-08.00-OFF_01',
         start_time=datetime(2024, 2, 26, 8, 0),
         end_time=datetime(2024, 2, 26, 10, 0),
-        user_id='USER_01',
+        user=named_user,
         office_id='OFF_01'
     )
     assert turn.idx == 'TURN-26.02.2024-08.00-OFF_01'
     assert turn.start_time == datetime(2024, 2, 26, 8, 0)
     assert turn.end_time == datetime(2024, 2, 26, 10, 0)
-    assert turn.user_id == 'USER_01'
+    assert turn.user == named_user
     assert turn.office_id == 'OFF_01'
 
 
-def test_turn_from_source_dict(turn_dict):
+def test_turn_from_source_dict(turn_dict, named_user):
     turn = turn_from_source_dict(turn_dict)
     assert turn.idx == 'TURN-26.02.2024-08.00-OFF_01'
     assert turn.start_time == datetime(2024, 2, 26, 8, 0)
     assert turn.end_time == datetime(2024, 2, 26, 10, 0)
-    assert turn.user_id == 'USER_01'
+    assert turn.user == named_user
     assert turn.office_id == 'OFF_01'
 
 
@@ -101,13 +114,13 @@ def test_turns_manager_range(test_config, turns_list):
     assert result == [result[0]]
 
 
-def test_turns_manager_insert(test_config):
+def test_turns_manager_insert(test_config, named_user):
     manger = MongoTurnsManager(test_config.mongo)
     turn = Turn(
         idx='TURN-26.02.2024-16.00-OFF_01',
         start_time=datetime(2024, 2, 26, 16, 0),
         end_time=datetime(2024, 2, 26, 19, 0),
-        user_id='USER_01',
+        user=named_user,
         office_id='OFF_01'
     )
     manger.insert_turn(turn)
@@ -119,7 +132,7 @@ def test_turns_manager_insert(test_config):
         idx='XXXX',
         start_time=datetime(2024, 2, 26, 18, 0),
         end_time=datetime(2024, 2, 26, 19, 0),
-        user_id='OTHER_USER',
+        user=named_user,
         office_id='OFF_01'
     )
     with pytest.raises(TurnNotAvailableError):
@@ -129,7 +142,7 @@ def test_turns_manager_insert(test_config):
         idx='XXXX',
         start_time=datetime(2024, 2, 26, 18, 0),
         end_time=datetime(2024, 2, 26, 19, 0),
-        user_id='USER_01',
+        user=named_user,
         office_id='OTHER_OFFICE'
     )
     with pytest.raises(TurnNotAvailableError):

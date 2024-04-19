@@ -16,8 +16,7 @@ class User(NamedUser):
     phone: str
     activity: str
 
-    @property
-    def named_user(self) -> NamedUser:
+    def get_named_user(self) -> NamedUser:
         return NamedUser(self.id, self.name)
 
 

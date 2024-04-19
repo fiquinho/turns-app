@@ -1,4 +1,3 @@
-import inspect
 from dataclasses import dataclass
 from typing import Any, get_type_hints, TypeVar, get_args
 
@@ -17,12 +16,13 @@ class BaseDataclass:
         :return: A new instance of the dataclass
         """
 
-        attributes = inspect.signature(cls).parameters
+        hints = get_type_hints(cls)
         constructor_args = {key: value for key, value in values.items()
-                            if key in attributes}
+                            if key in hints}
 
         init_args = {}
-        for (key, value), attr_type in zip(constructor_args.items(), get_type_hints(cls).values()):
+        for key, value in constructor_args.items():
+            attr_type = hints[key]
             if issubclass(attr_type, BaseDataclass):
                 init_args[key] = attr_type.from_dict(value)
             else:
@@ -49,10 +49,21 @@ class BaseDataclass:
     def to_dict(self) -> dict[str, Any]:
         """
         Convert the dataclass to a dictionary.
+        Also converts nested dataclasses to dictionaries.
 
         :return: A dictionary representation of the dataclass
         """
-        return {key: value for key, value in self.__dict__.items() if not key.startswith('_')}
+
+        hints = get_type_hints(self.__class__)
+        result = {}
+        for key, attr_type in hints.items():
+            value = getattr(self, key)
+            if issubclass(attr_type, BaseDataclass):
+                result[key] = value.to_dict()
+            else:
+                result[key] = value
+
+        return result
 
 
 BaseDataclassInstance = TypeVar('BaseDataclassInstance', bound=BaseDataclass)
