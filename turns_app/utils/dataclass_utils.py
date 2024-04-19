@@ -11,6 +11,7 @@ class BaseDataclass:
         """
         Construct a dataclass from a dictionary of values.
         Allows extra values to be passed in, but will ignore them.
+        Also allows nested dataclasses to be constructed.
 
         :param values: The dictionary of values to use to construct the dataclass
         :return: A new instance of the dataclass
@@ -20,8 +21,15 @@ class BaseDataclass:
         constructor_args = {key: value for key, value in values.items()
                             if key in attributes}
 
+        init_args = {}
+        for (key, value), attr_type in zip(constructor_args.items(), get_type_hints(cls).values()):
+            if issubclass(attr_type, BaseDataclass):
+                init_args[key] = attr_type.from_dict(value)
+            else:
+                init_args[key] = value
+
         # noinspection PyArgumentList
-        return cls(**constructor_args)
+        return cls(**init_args)
 
     def __post_init__(self):
         """Ensure that the dataclass has been constructed with the correct types.

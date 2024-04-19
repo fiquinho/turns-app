@@ -71,3 +71,25 @@ def test_from_dict(example_dict, example_dict_missing_optional, example_dict_ext
 
     with pytest.raises(TypeError):
         ExampleDataclass.from_dict(example_dict_missing_required)
+
+
+@pytest.fixture
+def nested_example_dict():
+    return {'idx': 1, 'example': {'idx': 1, 'name': 'name'}}
+
+
+@dataclass
+class NestedDataclass(BaseDataclass):
+    idx: int
+    example: ExampleDataclass
+
+
+def test_nested_dataclass(example_dict):
+    nested_example = NestedDataclass.from_dict({'idx': 1, 'example': example_dict})
+    assert nested_example.idx == 1
+    assert nested_example.example.idx == 1
+    assert nested_example.example.name == 'name'
+    assert nested_example.example.optional == 'optional'
+    assert isinstance(nested_example.example, ExampleDataclass)
+    assert isinstance(nested_example.example, BaseDataclass)
+    assert issubclass(NestedDataclass, BaseDataclass)

@@ -1,8 +1,8 @@
-[mongo_config]
+[mongo]
     server = "localhost"
     port = 27017
     db_name = "turns_app-dev"
-[business_config]
+[business]
     name = "Dev Business"
     # The start and end time as a string in the format "HH.MM"
     start_time = "08.00"

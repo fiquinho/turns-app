@@ -18,6 +18,13 @@ def singleton(cls):
         instances[cls] = cls(*args, **kwargs)
         return instances[cls]
 
+    def from_dict(values: dict[str, any]) -> cls:
+        if cls in instances:
+            raise ValueError(f"The class {cls} has already been instantiated")
+
+        instances[cls] = cls.from_dict(values)
+        return instances[cls]
+
     def get_instance() -> cls:
         if cls not in instances:
             raise ValueError(f"The class {cls} has not been instantiated")
@@ -34,6 +41,7 @@ def singleton(cls):
     create_instance.check_instance = check_instance
     create_instance.get_instance = get_instance
     create_instance.delete_instance = delete_instance
+    create_instance.from_dict = from_dict
 
     return create_instance
 
@@ -82,6 +90,4 @@ def load_app_config_from_toml(config_file: Path) -> AppConfig:
     with open(config_file, "r") as f:
         config = toml.load(f)
 
-    init_args = {"mongo": MongoConfig.from_dict(config["mongo_config"]),
-                 "business": BusinessConfig.from_dict(config["business_config"])}
-    return AppConfig(**init_args)
+    return AppConfig.from_dict(config)

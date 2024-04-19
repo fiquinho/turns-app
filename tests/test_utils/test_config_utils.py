@@ -56,6 +56,7 @@ def test_app_config():
     app_config = load_app_config_from_toml(TEST_CONFIG_PATH)
     assert isinstance(app_config.mongo, MongoConfig)
     assert isinstance(app_config.business, BusinessConfig)
+    assert isinstance(app_config.mongo, BaseDataclass)
     assert app_config.mongo.server == "localhost"
     assert app_config.mongo.db_name == "turns_app-test"
     assert app_config.mongo.port == 27017
