@@ -3,7 +3,16 @@ import json
 import pytest
 
 from tests.defaults import TEST_USERS_FILE
-from turns_app.model.users import User, MongoUsersManager, UserExistsError
+from turns_app.model.users import User, MongoUsersManager, UserExistsError, NamedUser
+from tests.conftest import test_config
+
+
+@pytest.fixture
+def named_user_dict() -> dict[str, str]:
+    return {
+        "id": "USER_01",
+        "name": "John Doe"
+    }
 
 
 @pytest.fixture
@@ -18,6 +27,11 @@ def user_dict() -> dict[str, str]:
 
 
 @pytest.fixture
+def named_user(named_user_dict) -> NamedUser:
+    return NamedUser.from_dict(named_user_dict)
+
+
+@pytest.fixture
 def user(user_dict) -> User:
     return User.from_dict(user_dict)
 
@@ -29,6 +43,12 @@ def users_list() -> list[User]:
     return [User.from_dict(_user) for _user in users]
 
 
+def test_named_user_creation(named_user_dict):
+    named_user = NamedUser.from_dict(named_user_dict)
+    assert named_user.id == "USER_01"
+    assert named_user.name == "John Doe"
+
+
 def test_user_creation(user_dict):
     user = User.from_dict(user_dict)
     assert user.id == "USER_03"
@@ -38,10 +58,23 @@ def test_user_creation(user_dict):
     assert user.activity == "Plomero"
 
 
+def test_named_user_to_dict(named_user_dict):
+    named_user = NamedUser.from_dict(named_user_dict)
+    result = named_user.to_dict()
+    assert result == named_user_dict
+
+
 def test_user_to_dict(user_dict):
     user = User.from_dict(user_dict)
     result = user.to_dict()
     assert result == user_dict
+
+
+def test_user_to_named_user(user_dict):
+    user = User.from_dict(user_dict)
+    named_user = user.named_user
+    assert named_user.id == user.id
+    assert named_user.name == user.name
 
 
 def test_users_manager_create(test_config, user):

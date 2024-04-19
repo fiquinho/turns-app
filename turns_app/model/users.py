@@ -3,14 +3,22 @@ from dataclasses import dataclass
 from turns_app.utils.dataclass_utils import BaseDataclass
 
 
-# TODO: Validate the email and phone fields
 @dataclass
-class User(BaseDataclass):
+class NamedUser(BaseDataclass):
     id: str
     name: str
+
+
+# TODO: Validate the email and phone fields
+@dataclass
+class User(NamedUser):
     email: str
     phone: str
     activity: str
+
+    @property
+    def named_user(self) -> NamedUser:
+        return NamedUser(self.id, self.name)
 
 
 class UserExistsError(Exception):

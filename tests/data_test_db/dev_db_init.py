@@ -53,7 +53,7 @@ def init_database(config: Path):
         data = json.load(f)
     users = [User.from_dict(user) for user in data]
     mongo_config.db.users.insert_many([user.to_dict() for user in users])
-    users_names = [user.name for user in users]
+    users_ids = [user.id for user in users]
 
     print('Setting up the turns dev database...')
     turns_manager = MongoTurnsManager(mongo_config)
@@ -68,7 +68,7 @@ def init_database(config: Path):
     while generated < total:
         day = random.choice(week_days)
         time_range = random_turn_time(business_config, day)
-        user = random.choice(users_names)
+        user = random.choice(users_ids)
         office = random.choice(business_config.offices)
 
         turn = Turn(idx=turn_id_generator(time_range.start_time, office),
