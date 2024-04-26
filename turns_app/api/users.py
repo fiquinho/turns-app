@@ -1,4 +1,4 @@
-from flask import Blueprint, request, current_app
+from flask import Blueprint, request, current_app, jsonify
 from flask_restx import Resource, fields, Api
 
 
@@ -31,6 +31,10 @@ user_model = users_api_extension.model('User', {
     "activity": fields.String(required=True, description="User activity")
 })
 
+users_model = users_api_extension.model('Users', {
+    "users": fields.List(fields.Nested(user_model), required=True, description="List of users")
+})
+
 
 @users_api_extension.route('/get_user', methods=['GET'])
 class GetWeek(Resource):
@@ -43,9 +47,20 @@ class GetWeek(Resource):
 
         # get request dict
         params = dict(request.args)
-
         idx: str = params.get('id')
-
         user = db_manager.get_by_id(idx)
 
         return user
+
+
+@users_api_extension.route('/get_users', methods=['GET'])
+class GetUsers(Resource):
+
+    @users_api_extension.marshal_with(users_model)
+    def get(self):
+        api_state: ApiState = current_app.config["api_config"]
+        db_manager = api_state.users_manager
+
+        users = db_manager.get_users()
+
+        return {"users": users}

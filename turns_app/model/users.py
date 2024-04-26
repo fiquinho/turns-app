@@ -33,6 +33,9 @@ class MongoUsersManager:
         user_dict = self.collection.find_one({"id": user_id})
         return User.from_dict(user_dict) if user_dict else None
 
+    def get_users(self) -> list[User]:
+        return [User.from_dict(user) for user in self.collection.find()]
+
     def create_user(self, user: User) -> None:
         if self.get_by_id(user.id):
             raise UserExistsError(f"The user with idx {user.id} already exists")
